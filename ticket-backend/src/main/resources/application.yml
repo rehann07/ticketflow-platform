@@ -1,0 +1,43 @@
+spring:
+  application:
+    name: ticket-backend
+
+  # redis config
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  datasource:
+    url: jdbc:postgresql://localhost:5433/support_ticket_db
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true                    # Recommended: Shows SQL queries in logs
+    hibernate:
+      ddl-auto: update                # "update": creates/updates tables automatically. Use "validate" in production.
+    properties:
+      hibernate:
+        format_sql: true              # Makes the logged SQL readable
+
+  ai:
+    openai:
+      api-key: ${GROQ_API_KEY}
+      base-url: https://api.groq.com/openai
+      chat:
+        options:
+          model: llama-3.3-70b-versatile
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true

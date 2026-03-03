@@ -1,0 +1,26 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: notification-system
+
+  # redis config
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  # --- CONNECT TO DOCKER POSTGRES (Port 5434) ---
+  datasource:
+    url: jdbc:postgresql://localhost:5434/notification_db
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true

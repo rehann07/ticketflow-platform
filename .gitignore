@@ -1,0 +1,53 @@
+# ========================
+# ENV FILES (VERY IMPORTANT)
+# ========================
+.env
+.env.*
+*.env
+
+# ========================
+# FRONTEND (Vite / React)
+# ========================
+node_modules/
+dist/
+build/
+.vite/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================
+# SPRING BOOT / JAVA
+# ========================
+target/
+*.log
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+.idea/
+.gradle/
+build/
+
+# ========================
+# OS FILES
+# ========================
+.DS_Store
+Thumbs.db
+
+# ========================
+# DOCKER
+# ========================
+docker-compose.override.yml
+
+# ========================
+# VS CODE
+# ========================
+.vscode/
+
+# ========================
+# MAC / LINUX TEMP
+# ========================
+*.swp
+*.swo
