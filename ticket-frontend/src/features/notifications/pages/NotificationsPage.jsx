@@ -44,7 +44,9 @@ const Notifications = () => {
     });
 
     return () => {
-      if (stompClient) stompClient.disconnect();
+      if (stompClient && stompClient.connected) {
+        stompClient.disconnect();
+      }
     };
   }, [username]);
 
