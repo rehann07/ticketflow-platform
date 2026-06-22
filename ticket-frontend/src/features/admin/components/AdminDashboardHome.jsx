@@ -258,7 +258,12 @@ const AdminDashboardHome = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="value" fill="#6366f1" radius={[6, 6, 0, 0]} />
+                  <Bar 
+                          dataKey="value" 
+                          fill="#6366f1" 
+                          radius={[6, 6, 0, 0]} 
+                          label={{ position: 'top', fill: '#475569', fontSize: 12, fontWeight: 600 }} 
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -268,14 +273,19 @@ const AdminDashboardHome = () => {
           <Card>
             <CardContent className="p-4">
               <p className="text-sm font-semibold mb-4">Categories</p>
-              <ResponsiveContainer width="100%" height={220}>
+              <ResponsiveContainer width="100%" height={260}>
                 <BarChart data={categoryChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="value" fill="#10b981" radius={[6, 6, 0, 0]} />
+                  <Bar 
+                  dataKey="value" 
+                  fill="#10b981" 
+                  radius={[6, 6, 0, 0]} 
+                  label={{ position: 'top', fill: '#475569', fontSize: 12, fontWeight: 600 }} 
+                />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -285,15 +295,23 @@ const AdminDashboardHome = () => {
           <Card>
             <CardContent className="p-4">
               <p className="text-sm font-semibold mb-4">AI Sentiment</p>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart margin={{ bottom: 20 }}>
                   <Tooltip />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36} 
+                    iconType="circle" 
+                    wrapperStyle={{ paddingTop: "20px" }} 
+                  />
                   <Pie
                     data={sentimentChartData}
                     dataKey="value"
-                    innerRadius={50}
-                    outerRadius={80}
+                    innerRadius={45}
+                    outerRadius={70}
                     paddingAngle={3}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
                   >
                     {sentimentChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -303,19 +321,28 @@ const AdminDashboardHome = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
+
           {/* PRIORITY DONUT */}
           <Card>
             <CardContent className="p-4">
               <p className="text-sm font-semibold mb-4">Ticket Priority</p>
-              <ResponsiveContainer width="100%" height={220}>
-                <PieChart>
+              <ResponsiveContainer width="100%" height={260}>
+                <PieChart margin={{ bottom: 20 }}>
                   <Tooltip />
+                  <Legend 
+                    verticalAlign="bottom" 
+                    height={36} 
+                    iconType="circle" 
+                    wrapperStyle={{ paddingTop: "20px" }} 
+                  />
                   <Pie
                     data={priorityChartData}
                     dataKey="value"
-                    innerRadius={50}
-                    outerRadius={80}
+                    innerRadius={45}
+                    outerRadius={70}
                     paddingAngle={3}
+                    label={({ percent }) => `${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
                   >
                     {priorityChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
@@ -325,7 +352,6 @@ const AdminDashboardHome = () => {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-
         </div>
       </div>
 
@@ -333,7 +359,7 @@ const AdminDashboardHome = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
 
         {/* SEARCH */}
-        <div className="relative w-full lg:w-[350px]">
+        <div className="relative w-full lg:w-87.5">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <Input
             placeholder="Search tickets..."
@@ -419,12 +445,12 @@ const AdminDashboardHome = () => {
         <Table>
           <TableHeader className="bg-slate-50">
             <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
+              <TableHead className="w-25">ID</TableHead>
               <TableHead>Subject</TableHead>
-              <TableHead className="w-[120px]">Category</TableHead>
-              <TableHead className="w-[120px]">Priority</TableHead>
-              <TableHead className="w-[120px]">Status</TableHead>
-              <TableHead className="w-[80px] text-right"></TableHead>
+              <TableHead className="w-30">Category</TableHead>
+              <TableHead className="w-30">Priority</TableHead>
+              <TableHead className="w-30">Status</TableHead>
+              <TableHead className="w-20 text-right"></TableHead>
             </TableRow>
           </TableHeader>
 

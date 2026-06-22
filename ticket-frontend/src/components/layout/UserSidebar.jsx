@@ -48,7 +48,7 @@ const UserSidebar = () => {
     stompClient.debug = null; // Hides debug logs in console
 
     stompClient.connect({}, () => {
-      stompClient.subscribe("/topic/notifications", (message) => {
+      stompClient.subscribe(`/topic/notifications/${username}`, (message) => {
         const newNotification = JSON.parse(message.body);
         
         // If the notification belongs to this user, increment the badge instantly
@@ -94,7 +94,7 @@ const UserSidebar = () => {
           </div>
           
           {unreadCount > 0 && (
-            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white shadow-sm transition-all group-hover:scale-110">
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold text-white shadow-sm transition-all group-hover:scale-110">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

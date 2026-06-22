@@ -12,7 +12,7 @@ const TicketSummaryCard = ({ ticket }) => {
       onClick={() => navigate(`/dashboard/tickets/${ticket.id}`)}
       className={`group relative cursor-pointer border 
       rounded-2xl hover:shadow-lg transition-all duration-200 
-      h-[220px] flex flex-col p-6
+      h-55 flex flex-col p-6
       ${ticket.status === "OPEN"
         ? "border-l-4 border-l-orange-400"
         : "border-l-4 border-l-green-400"

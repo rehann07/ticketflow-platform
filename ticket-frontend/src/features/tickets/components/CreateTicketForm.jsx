@@ -89,7 +89,7 @@ export function CreateTicketForm({ onClose }) {
                       {...form.register("description")}
                       id="description"
                       placeholder="Enter the description"
-                      className="min-h-[100px] resize-none"
+                      className="min-h-25 resize-none"
                       disabled={loading}
                     />
                     <div className="text-xs text-muted-foreground text-right mt-1">

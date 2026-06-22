@@ -9,7 +9,7 @@ import com.support.ticket.event.TicketResolvedEvent;
 import com.support.ticket.exception.InvalidTicketStatusException;
 import com.support.ticket.exception.TicketNotFoundException;
 import com.support.ticket.exception.TicketUpdateNotAllowedException;
-import com.support.ticket.redis.TicketProducer;
+import com.support.ticket.kafka.TicketEventProducer;
 import com.support.ticket.mapper.TicketMapper;
 import com.support.ticket.model.Ticket;
 import com.support.ticket.model.TicketPriority;
@@ -34,15 +34,11 @@ public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
     private final TicketRepository ticketRepository;
-    private final UserService userService;
     private final TicketMapper ticketMapper;
-    private final TicketProducer ticketProducer;
+    private final TicketEventProducer ticketEventProducer;
     private final AiService aiService;
 
-    // ==================================================================================
     // 1. TICKET CREATION (WITH AI ENRICHMENT)
-    // ==================================================================================
-
     @Transactional
     public TicketResponse createTicket(TicketRequest request, User user) {
 
@@ -70,7 +66,7 @@ public class TicketService {
 
         Ticket savedTicket = ticketRepository.save(ticket);
 
-        // --- Redis Event ---
+        // --- Ticket Event ---
         try {
             TicketCreatedEvent event = new TicketCreatedEvent(
                     user.getEmail(),
@@ -80,18 +76,15 @@ public class TicketService {
                     savedTicket.getId(),
                     savedTicket.getCreatedAt()
             );
-            ticketProducer.sendEvent("ticket_notifications", event);
+            ticketEventProducer.sendEvent("ticket_created_topic", event);
         } catch (Exception e) {
-            log.error("Failed to send Redis event, but ticket was saved", e);
+            log.error("Failed to send Kafka event, but ticket was saved", e);
         }
 
         return ticketMapper.toResponse(savedTicket);
     }
 
-    // ==================================================================================
     // 2. READ OPERATIONS (GET)
-    // ==================================================================================
-
     @Cacheable(value = "tickets_response", key = "#id + ':' + #user.username")
     @Transactional(readOnly = true)
     public Object getTicketById(Long id, User user) {
@@ -122,11 +115,8 @@ public class TicketService {
                 .toList();
     }
 
-    // ==================================================================================
     // 3. UPDATE OPERATIONS
-    // ==================================================================================
-
-    @CacheEvict(value = "tickets_response", key = "#id + ':' + #user.username")
+    @CacheEvict(value = "tickets_response", allEntries = true)
     @Transactional
     public TicketResponse updateTicketDetails(Long id, String newTitle, String newDescription, User user) {
         Ticket ticket = ticketRepository.findByIdWithUser(id)
@@ -144,11 +134,8 @@ public class TicketService {
         return ticketMapper.toResponse(ticketRepository.save(ticket));
     }
 
-    // ==================================================================================
     // 4. DELETE OPERATIONS
-    // ==================================================================================
-
-    @CacheEvict(value = "tickets_response", key = "#id + ':' + #user.username")
+    @CacheEvict(value = "tickets_response", allEntries = true)
     public void deleteTicket(Long id, User user) {
         Ticket ticket = ticketRepository.findByIdWithUser(id)
                 .orElseThrow(() -> new TicketNotFoundException(id));
@@ -157,10 +144,7 @@ public class TicketService {
         ticketRepository.delete(ticket);
     }
 
-    // ==================================================================================
     // 5. ADMIN OPERATIONS
-    // ==================================================================================
-
     @Transactional(readOnly = true)
     public List<TicketAdminResponse> findAllTicketsInSystem() {
         return ticketRepository.findAll().stream()
@@ -168,7 +152,7 @@ public class TicketService {
                 .toList();
     }
 
-    @CacheEvict(value = "tickets_response", key = "#id + ':' + #user.username")
+    @CacheEvict(value = "tickets_response", allEntries = true)
     @Transactional
     public TicketAdminResponse updateTicketStatus(Long id, String newStatus, User user) {
         Ticket ticket = ticketRepository.findById(id)
@@ -186,7 +170,7 @@ public class TicketService {
 
         Ticket savedTicket = ticketRepository.save(ticket);
 
-        // --- Redis Event Trigger ---
+        // --- Kafka Event Trigger ---
         try {
             // Only trigger the Resolved event.
             if (status == TicketStatus.RESOLVED) {
@@ -199,15 +183,16 @@ public class TicketService {
                         user.getUsername(),
                         java.time.LocalDateTime.now()
                 );
-                ticketProducer.sendEvent("ticket_notifications", resolvedEvent);
+                ticketEventProducer.sendEvent("ticket_resolved_topic", resolvedEvent);
             }
         } catch (Exception e) {
-            log.error("Failed to send status update Redis event", e);
+            log.error("Failed to send status update Kafka event", e);
         }
 
         return ticketMapper.toAdminResponse(savedTicket);
     }
 
+    @CacheEvict(value = "tickets_response", allEntries = true)
     public void deleteTicketAsAdmin(Long id) {
         if (!ticketRepository.existsById(id)) {
             throw new TicketNotFoundException(id);
@@ -215,10 +200,7 @@ public class TicketService {
         ticketRepository.deleteById(id);
     }
 
-    // ==================================================================================
-    // 6. HELPER METHODS (PRIVATE)
-    // ==================================================================================
-
+    // 6. HELPER METHOD (PRIVATE)
     private void validateOwnership(Ticket ticket, User user) {
         String currentUsername = user.getUsername();
         String ticketOwner = ticket.getUser().getUsername();

@@ -14,7 +14,9 @@ const Notifications = () => {
   const { user } = useAuth();
   const username = user?.username;
 
-  const fetchNotifications = async () => {
+  
+  useEffect(() => {
+    const fetchNotifications = async () => {
     try {
       const response = await notificationApi.get('');
       setNotifications(response.data);
@@ -25,7 +27,6 @@ const Notifications = () => {
     }
   };
 
-  useEffect(() => {
     // 1. Fetch history
     fetchNotifications();
 
@@ -35,13 +36,10 @@ const Notifications = () => {
     stompClient.debug = null;
 
     stompClient.connect({}, () => {
-      stompClient.subscribe("/topic/notifications", (message) => {
+      stompClient.subscribe(`/topic/notifications/${username}`, (message) => {
         const newNotification = JSON.parse(message.body);
         
-        // If this notification is for us, add it to the top of the list instantly!
-        if (newNotification.username === username) {
-          setNotifications(prev => [newNotification, ...prev]);
-        }
+        setNotifications(prev => [newNotification, ...prev]);
       });
     });
 

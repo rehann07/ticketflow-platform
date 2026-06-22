@@ -82,7 +82,7 @@ const MyTickets = () => {
         <div className="flex items-center gap-2 w-full md:w-auto">
 
   {/* Search */}
-  <div className="relative w-full md:w-[250px]">
+  <div className="relative w-full md:w-62.5">
     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
     <Input
       placeholder="Search by subject or ID..."
@@ -123,16 +123,16 @@ const MyTickets = () => {
         <Table className="w-full">
           <TableHeader className="bg-slate-50">
             <TableRow className="hover:bg-transparent border-b border-slate-200">
-              <TableHead className="w-[100px] h-11 text-slate-500 font-semibold pl-6">
+              <TableHead className="w-25 h-11 text-slate-500 font-semibold pl-6">
                 ID
               </TableHead>
               <TableHead className="h-11 text-slate-500 font-semibold">
                 Subject
               </TableHead>
-              <TableHead className="w-[120px] h-11 text-slate-500 font-semibold">
+              <TableHead className="w-30 h-11 text-slate-500 font-semibold">
                 Status
               </TableHead>
-              <TableHead className="w-[80px] h-11 text-right pr-6" />
+              <TableHead className="w-20 h-11 text-right pr-6" />
             </TableRow>
           </TableHeader>
 

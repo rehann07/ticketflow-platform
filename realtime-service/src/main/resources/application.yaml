@@ -1,0 +1,42 @@
+server:
+  port: 8081 # Running on 8081 so it doesn't clash with main ticket-backend on 8080
+
+spring:
+  application:
+    name: realtime-service
+
+    # --- Aiven PostgreSQL Configuration ---
+  datasource:
+    url: ${DB_URL}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    database: POSTGRESQL
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+    hibernate:
+      # Set to 'none' because the main backend handles table creation
+      ddl-auto: none
+
+  # --- Kafka Configuration ---
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS}
+
+    ssl:
+      trust-store-type: PEM
+      trust-store-location: classpath:ca.pem
+
+    properties:
+      security.protocol: SASL_SSL
+      sasl.mechanism: SCRAM-SHA-256
+      sasl.jaas.config: org.apache.kafka.common.security.scram.ScramLoginModule required username='${KAFKA_USERNAME}' password='${KAFKA_API_SECRET}';
+
+    consumer:
+      group-id: notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+app:
+  frontend-url: ${FRONTEND_URL}
+

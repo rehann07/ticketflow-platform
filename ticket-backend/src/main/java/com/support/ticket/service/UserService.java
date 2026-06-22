@@ -8,7 +8,7 @@ import com.support.ticket.dto.UserResponse;
 import com.support.ticket.event.UserDeletedEvent;
 import com.support.ticket.exception.UserAlreadyExistsException;
 import com.support.ticket.exception.UserNotFoundException;
-import com.support.ticket.redis.TicketProducer;
+import com.support.ticket.kafka.TicketEventProducer;
 import com.support.ticket.model.User;
 import com.support.ticket.repository.TicketRepository;
 import com.support.ticket.repository.UserRepository;
@@ -28,7 +28,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder; // Bean from SecurityConfig
     private final TicketRepository ticketRepository;
 
-    private final TicketProducer ticketProducer;
+    private final TicketEventProducer ticketEventProducer;
 
     // 1. Register Normal User
     public void registerUser(RegisterRequest request) {
@@ -80,17 +80,17 @@ public class UserService {
     @Transactional
     public void changePassword(User user, ChangePasswordRequest request) {
 
-        // 1️⃣ Verify current password matches
+        // 1 Verify current password matches
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
             throw new IllegalArgumentException("Current password is incorrect");
         }
 
-        // 2️⃣ Prevent reusing same password
+        // 2 Prevent reusing same password
         if (passwordEncoder.matches(request.newPassword(), user.getPassword())) {
             throw new IllegalArgumentException("New password must be different from current password");
         }
 
-        // 3️⃣ Encode and update
+        // 3 Encode and update
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
     }
@@ -130,7 +130,7 @@ public class UserService {
 
         userRepository.delete(userToDelete);
 
-        ticketProducer.sendEvent("ticket_notifications", new UserDeletedEvent(deletedUsername));
+        ticketEventProducer.sendEvent("user_deleted_topic", new UserDeletedEvent(deletedUsername));
     }
 
     // --- Helper Method ---

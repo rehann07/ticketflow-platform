@@ -5,6 +5,7 @@ import com.support.ticket.dto.LoginRequest;
 import com.support.ticket.dto.RegisterRequest;
 import com.support.ticket.model.User;
 import com.support.ticket.repository.UserRepository;
+import com.support.ticket.service.TokenBlacklistService;
 import com.support.ticket.service.UserService;
 import com.support.ticket.utils.JwtUtil;
 import jakarta.validation.Valid;
@@ -24,6 +25,7 @@ public class AuthController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
+    private final TokenBlacklistService tokenBlacklistService;
 
     // 1. Register (Public)
     @PostMapping("/signup")
@@ -58,5 +60,21 @@ public class AuthController {
                         user.getRoles()
                 )
         );
+    }
+
+    // 3. Logout
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(jakarta.servlet.http.HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            long remainingTime = jwtUtil.getRemainingExpirationTime(token);
+
+            // Throw the token into the Redis Blacklist!
+            tokenBlacklistService.addToBlacklist(token, remainingTime);
+        }
+
+        return ResponseEntity.ok("Logged out successfully");
     }
 }

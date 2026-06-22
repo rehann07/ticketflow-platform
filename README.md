@@ -1,90 +1,131 @@
-# TicketFlow - Real-Time Support Platform 
+# 🚀 TicketFlow: AI-Based Real-Time Support Platform
 
-TicketFlow is a high-performance, containerized support ticket management system built with a decoupled microservice architecture. It features AI-driven auto-triage, real-time notifications, role-based access control, and optimized database interactions using caching and event-driven messaging.
+TicketFlow is a distributed, microservice-based support ticket ecosystem. It leverages **Artificial Intelligence** for automated ticket triaging, **distributed caching** for high performance, and an **event-driven architecture** (Kafka) to deliver real-time WebSocket notifications to end-users.
 
-## 🚀 Features
+---
 
-* **🤖 AI-Powered Auto-Triage:** Integrates Groq AI (Llama 3) to automatically analyze ticket descriptions, determine user sentiment, generate admin summaries, and intelligently assign priority and categories.
-* **⚡ Real-Time Notifications:** Utilizes Redis Pub/Sub and WebSockets to push instant updates to users when tickets are created or resolved.
-* **🔗 Decoupled Microservices:** Separated `ticket-backend` and `notification-system` to ensure independent scaling and fault tolerance.
-* **🛡️ Role-Based Access Control (RBAC):** Secure JWT authentication with strict boundaries between regular Users and Admins.
-* **🚀 High-Performance Caching:** Redis caching implemented on heavily queried endpoints to reduce PostgreSQL load and improve response times.
-* **📧 Automated Email Alerts:** Asynchronous email dispatching for critical ticket lifecycle events.
-* **💻 Modern, Responsive UI:** Built with React, Tailwind CSS, and Shadcn UI for a sleek, enterprise-grade user experience.
+## 🏗️ System Architecture
 
-## 🛠️ Tech Stack
+The ecosystem consists of a React client and two Spring Boot microservices, heavily integrated with cloud infrastructure hosted on Aiven and AI models provided by Groq.
+
+```text
+                             [ React Frontend ] 
+                                     │
+                 (HTTP API)          │          (WebSockets / STOMP)
+                 ┌───────────────────┴───────────────────┐
+                 ▼                                       ▼
+       [ Ticket Backend ]                      [ Realtime Service ]
+       (Port 8080 - Main API)                  (Port 8081 - Notifications)
+                 │                                       │
+                 ├─► (Prompts) ───────► [ Groq AI (Llama 3) ]
+                 │                                       │
+                 ├─► (Publishes) ─────► [ Apache Kafka ] ├─► (Consumes)
+                 │                                       │
+                 ├─► (Read/Write) ────► [ PostgreSQL ] ◄─┤   (Read-Only)
+                 │
+                 └─► (Caches Tokens) ─► [ Redis/Valkey ] 
+
+```
+
+## 📂 Project Structure
+
+This monorepo contains three core applications. See their individual `README.md` files for deeper technical details:
+
+* **`/ticket-backend`**: The primary API. Handles stateless JWT authentication, AI auto-triaging, CRUD operations, and publishes system events to Kafka.
+* **`/realtime-service`**: An event-driven microservice. Consumes Kafka topics and pushes live updates to the React frontend via WebSockets.
+* **`/ticket-frontend`**: The React 19/Vite client interface. Features role-based routing (Admin vs. User), dynamic Recharts dashboards, and dual-Axios configuration.
+
+## 🛠️ Global Tech Stack
+
 
 <div align="center">
   <img src="https://skillicons.dev/icons?i=java,spring,postgres,redis,react,tailwind,vite,docker,git,github" alt="Tech Stack Logos" />
 </div> 
 
-**Frontend**
-* React.js (Vite)
-* Tailwind CSS & Shadcn UI
-* Lottie Animations
-* Axios for API communication
 
-**Backend (Java / Spring Boot 3)**
-* **Core APIs:** Spring Web, Spring Security (JWT), Spring Data JPA
-* **AI Integration:** Spring AI (Groq / Llama 3)
-* **Databases:** PostgreSQL (Separate DBs for Tickets and Notifications)
-* **Messaging & Cache:** Redis (Pub/Sub for event routing, Caching for performance)
-* **Real-Time:** Spring WebSockets
+| Domain | Technologies |
+| --- | --- |
+| **Frontend** | React 19, Vite, Tailwind CSS v4, shadcn/ui, Recharts |
+| **Backends** | Java 21, Spring Boot 3.3, Spring Security, Spring WebSockets |
+| **Artificial Intelligence** | Spring AI, Groq (`llama-3.3-70b-versatile`) |
+| **Message Broker** | Apache Kafka (Aiven Cloud) |
+| **Database & Cache** | PostgreSQL, Redis/Valkey (Aiven Cloud) |
+| **Deployment** | Docker, Docker Compose |
 
-**DevOps & Deployment**
-* Docker & Docker Compose (Multi-container orchestration)
+---
 
-## 🏗️ Architecture Overview
+## 🚦 Getting Started (Docker Deployment)
 
-1.  **Ticket Backend:** Handles core business logic, user management, and ticket CRUD operations. It runs AI analysis on incoming tickets and publishes a JSON payload to a Redis topic whenever a major event occurs.
-2.  **Notification System:** A lightweight, independent service that subscribes to Redis topics, saves notification history to its own database, and blasts real-time updates to the React frontend via WebSockets.
-3.  **Redis:** Acts as the central nervous system, handling both API response caching and ultra-fast Pub/Sub message brokering.
+The entire ecosystem is fully containerized. You do not need to install Java, Node, or databases on your local machine to run the project.
 
-## ⚙️ Local Setup & Installation
+### 1. Prerequisites
 
-Ensure you have [Docker](https://www.docker.com/) and Docker Compose installed on your machine.
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
+* Cloud instances of PostgreSQL, Redis, and Kafka (e.g., via Aiven Free Tier).
+* A free API key from [Groq](https://console.groq.com/).
 
-**1. Clone the repository**
-```bash
-git clone https://github.com/rehann07/TicketFlow.git
-cd TicketFlow
+### 2. Environment Configuration
 
-```
-
-**2. Configure Environment Variables**
-Create a `.env` file in the root directory and add your credentials:
+Create a `.env` file in this **root directory**. Docker will automatically inject these variables into your containers.
 
 ```env
-POSTGRES_USER=your_db_user
-POSTGRES_PASSWORD=your_db_password
-MAIL_USERNAME=your_email@gmail.com
-MAIL_PASSWORD=your_app_password
-GROQ_API_KEY=your_groq_api_key
+
+# --- Frontend URL ---
+FRONTEND_URL=http://localhost:3000
+
+VITE_API_BASE_URL=http://localhost:8080/api
+VITE_NOTIFICATION_API_URL=http://localhost:8081/api/notifications
+VITE_WEBSOCKET_URL=http://localhost:8081/ws
+
+# --- Aiven Database ---
+DB_URL=jdbc:postgresql://<your-aiven-db-url>?user=avnadmin&password=<password>&sslmode=require
+
+# --- Aiven Redis Cache ---
+REDIS_URL=rediss://default:<password>@<your-aiven-redis-url>
+
+# --- Aiven Kafka Cluster ---
+KAFKA_SERVERS=<your-aiven-kafka-url>:25311
+KAFKA_USERNAME=avnadmin
+KAFKA_API_SECRET=<your-kafka-password>
+
+# --- AI & Security ---
+GROQ_API_KEY=<your-groq-key>
+JWT_SECRET=<your-secure-random-jwt-secret>
+
+# --- Email Notifications (Optional) ---
+MAIL_USERNAME=<your-gmail-address>
+MAIL_PASSWORD=<your-gmail-app-password>
 
 ```
 
-**3. Build and run with Docker Compose**
+### 3. Build & Launch
+
+Open your terminal in this root folder and run:
 
 ```bash
 docker compose up -d --build
 
 ```
 
-**4. Access the Application**
+### 4. Access the Applications
 
-* **Frontend:** `http://localhost:3000`
-* **Ticket API:** `http://localhost:8080`
-* **Notification API / WebSockets:** `http://localhost:8081`
+Once Docker indicates all containers are running, the ecosystem is live at:
 
-## 🔒 Default Admin Credentials
+* **🖥️ Web Application:** `http://localhost:3000`
+* **⚙️ Backend API / Swagger Docs:** `http://localhost:8080/swagger-ui.html`
+* **🔔 WebSocket Tunnel (Realtime Service):** `http://localhost:8081`
 
-*(For local testing and review purposes)*
+---
+## 👤 Author
 
-* **Username:** admin
-* **Password:** admin123
+**Rehan Naikwadi**
 
-## 🤝 Contributing
-Contributions are welcome! Please fork the repo and create a pull request for improvements.
+GitHub: [@rehann07](https://github.com/rehann07)
 
-## 📝 License
-This project is licensed under the MIT License.
+---
+
+## 📄 License
+
+This project is licensed under the **MIT License**.
+
+See the [LICENSE](./LICENSE) file for full details.

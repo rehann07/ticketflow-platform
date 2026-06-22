@@ -183,7 +183,7 @@ const TicketDetails = ({ isAdmin = false }) => {
         {isAdmin && (ticket.priority || ticket.aiSummary || ticket.sentiment) && (
           <div className="space-y-6">
             
-            <Card className="border-indigo-100 bg-gradient-to-b from-indigo-50/50 to-white shadow-sm relative overflow-hidden">
+            <Card className="border-indigo-100 bg-linear-to-b from-indigo-50/50 to-white shadow-sm relative overflow-hidden">
                 {/* Subtle background icon */}
                 <div className="absolute top-2 right-2 text-indigo-100 pointer-events-none">
                     <BrainCircuit className="h-24 w-24 opacity-20" />

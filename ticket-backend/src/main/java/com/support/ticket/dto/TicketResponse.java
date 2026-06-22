@@ -9,6 +9,5 @@ public record TicketResponse(
         String status,
         String username,
         List<String> roles
-) implements java.io.Serializable {  // Good practice for Redis
-    private static final long serialVersionUID = 1L;
+){
 }

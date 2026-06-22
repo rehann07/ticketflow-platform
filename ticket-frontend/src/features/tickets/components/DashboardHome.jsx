@@ -111,7 +111,7 @@ const DashboardHome = () => {
           <button
             onClick={onCreateClick}
             className="group border-2 border-dashed border-slate-200 
-                       rounded-2xl h-[220px] flex flex-col p-6
+                       rounded-2xl h-55 flex flex-col p-6
                        hover:border-slate-400 hover:shadow-lg transition-all"
           >
             <div className="mt-auto text-center">

@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-// Create a separate instance for the Notification Microservice
+// a separate instance for the Notification Microservice
 const notificationApi = axios.create({
     baseURL: import.meta.env.VITE_NOTIFICATION_API_URL, // Points to Port 8081
     headers: {

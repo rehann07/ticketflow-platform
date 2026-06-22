@@ -1,5 +1,6 @@
 package com.support.ticket.filter;
 
+import com.support.ticket.service.TokenBlacklistService;
 import com.support.ticket.service.UserDetailsServiceImpl;
 import com.support.ticket.utils.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -23,6 +24,7 @@ public class JwtFilter extends OncePerRequestFilter {
     private final UserDetailsServiceImpl userDetailsService;
 
     private final JwtUtil jwtUtil;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
@@ -46,6 +48,12 @@ public class JwtFilter extends OncePerRequestFilter {
         // 1. Check if the header contains a Bearer token
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             jwt = authorizationHeader.substring(7); // Remove "Bearer " prefix
+            // CHECK: Is this token in the Redis Blacklist?
+            if (tokenBlacklistService.isBlacklisted(jwt)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token has been revoked. Please log in again.");
+                return; // Kill the request immediately
+            }
             username = jwtUtil.extractUsername(jwt);
         }
 
