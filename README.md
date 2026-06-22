@@ -116,6 +116,20 @@ Once Docker indicates all containers are running, the ecosystem is live at:
 * **🔔 WebSocket Tunnel (Realtime Service):** `http://localhost:8081`
 
 ---
+## ☁️ Cloud Deployment
+
+The application is architected to run seamlessly in the cloud, utilizing a modern, decoupled deployment strategy:
+
+* **Frontend:** Hosted on **Vercel** for global CDN edge delivery and native React/Vite support.
+* **Microservices:** Deployed as independent Docker Web Services on **Render**.
+* **Infrastructure:** PostgreSQL, Redis, and Apache Kafka are managed securely via **Aiven**.
+
+### Key Production Configurations
+
+* **WebSockets over HTTPS:** The frontend utilizes the secure WebSocket protocol (`wss://`) to negotiate connections with the deployed real-time service via SockJS.
+* **Database Connection Pooling:** HikariCP is explicitly constrained (`SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE=3`) to prevent max-connection exhaustion on hobby-tier cloud databases.
+* **Secret Injection:** The `.pem` certificates required for Kafka SSL validation are injected securely via Render's Secret Files at runtime, bypassing classpath limitations.
+* **CORS:** Spring Boot instances are strictly configured to accept preflight requests and credentials exclusively from the Vercel production domain.
 ## 👤 Author
 
 **Rehan Naikwadi**
