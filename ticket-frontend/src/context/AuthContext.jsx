@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
       try {
         // 1. Tell the backend to throw the current token into the Redis Blacklist
-        await api.post("/api/auth/logout");
+        await api.post("/auth/logout");
       } catch (error) {
         console.error("Server logout failed, but clearing local session.", error);
       } finally {
