@@ -51,3 +51,26 @@ docker-compose.override.yml
 # ========================
 *.swp
 *.swo
+
+# ========================
+# ADDITIONAL FRONTEND
+# ========================
+.eslintcache
+.next/
+out/
+
+# ========================
+# ADDITIONAL JAVA / IDE
+# ========================
+*.class
+*.pyc
+.project
+.classpath
+.settings/
+bin/
+
+# ========================
+# MACOS EXTRA
+# ========================
+._*
+.AppleDouble
