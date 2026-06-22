@@ -10,6 +10,8 @@ services:
       - "8080:8080"
     env_file:
       - .env # Ensure your root .env contains DB_URL, REDIS_URL, KAFKA_SERVERS, etc.
+    environment:
+      - SPRING_KAFKA_SSL_TRUST_STORE_LOCATION=file:///app/ca.pem
 
   realtime-service:
     build:
@@ -19,6 +21,9 @@ services:
       - "8081:8081"
     env_file:
       - .env
+    environment:
+      - SPRING_KAFKA_SSL_TRUST_STORE_LOCATION=file:///app/ca.pem
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
 
   # ---------------- FRONTEND ----------------
   ticket-frontend:
@@ -29,4 +34,4 @@ services:
       - "3000:80" # Maps port 3000 on your machine to Nginx's port 80 inside the container
     depends_on:
       - ticket-backend
-      - notification-system
+      - realtime-service

@@ -18,6 +18,8 @@ WORKDIR /app
 # Copy the compiled .jar file from the "build" stage
 COPY --from=build /app/target/*-SNAPSHOT.jar app.jar
 
+COPY ca.pem /app/ca.pem
+
 EXPOSE 8081
 
 # Command to run the Spring Boot application

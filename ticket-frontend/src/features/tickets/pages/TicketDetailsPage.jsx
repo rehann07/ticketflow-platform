@@ -11,12 +11,19 @@ import {
   Sparkles,
   BrainCircuit,
   Tags,
-  Activity
+  Activity,
+  Edit2,
+  Save,
+  X,
+  CheckCircle2,
+  AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";       
+import { Textarea } from "@/components/ui/textarea";
 
 const TicketDetails = ({ isAdmin = false }) => {
   const { id } = useParams();
@@ -25,6 +32,12 @@ const TicketDetails = ({ isAdmin = false }) => {
   const [ticket, setTicket] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [updateLoading, setUpdateLoading] = useState(false);
+  
+  const [statusLoading, setStatusLoading] = useState(false); 
+  const [editForm, setEditForm] = useState({ title: "", description: "" });
 
   useEffect(() => {
     if (!id) return;
@@ -38,6 +51,10 @@ const TicketDetails = ({ isAdmin = false }) => {
 
         if (typeof response.data === "object" && response.data !== null) {
           setTicket(response.data);
+          setEditForm({
+            title: response.data.title,
+            description: response.data.description,
+          });
         } else {
           setError("Invalid data received from server.");
         }
@@ -50,6 +67,36 @@ const TicketDetails = ({ isAdmin = false }) => {
 
     fetchTicket();
   }, [id]);
+
+  const handleUpdateTicket = async () => {
+    try {
+      setUpdateLoading(true);
+      const response = await api.put(`/tickets/${id}`, editForm);
+      setTicket(response.data); 
+      setIsEditing(false); 
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to update ticket.");
+    } finally {
+      setUpdateLoading(false);
+    }
+  };
+
+  const handleStatusToggle = async () => {
+    try {
+      setStatusLoading(true);
+      const newStatus = ticket.status === "OPEN" ? "RESOLVED" : "OPEN";
+      
+      // Call the admin status update endpoint
+      await api.put(`/admin/${id}/status?status=${newStatus}`, null);
+      
+      // Instantly update the UI without refreshing the page
+      setTicket({ ...ticket, status: newStatus });
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to update status.");
+    } finally {
+      setStatusLoading(false);
+    }
+  };
 
   if (loading)
     return (
@@ -89,19 +136,48 @@ const TicketDetails = ({ isAdmin = false }) => {
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       
-      {/* --- Navigation --- */}
-      <div className="flex items-center gap-2 text-sm text-slate-500 mb-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="hover:text-slate-900 flex items-center gap-1 transition-colors font-medium"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </button>
-        <span className="text-slate-300">/</span>
-        <span className="font-medium text-slate-900">
-          Ticket #{ticket.id}
-        </span>
+      {/* --- Navigation & Header Buttons --- */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2 text-sm text-slate-500">
+          <button
+            onClick={() => navigate(-1)}
+            className="hover:text-slate-900 flex items-center gap-1 transition-colors font-medium"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </button>
+          <span className="text-slate-300">/</span>
+          <span className="font-medium text-slate-900">
+            Ticket #{ticket.id}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          {/* USER ACTION: Edit Button (Only visible for standard users on OPEN tickets) */}
+          {!isAdmin && ticket.status === "OPEN" && !isEditing && (
+            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+              <Edit2 className="h-4 w-4 mr-2" />
+              Edit Ticket
+            </Button>
+          )}
+
+          {/* ADMIN ACTION: Status Toggle Button */}
+          {isAdmin && (
+            <Button 
+              variant={ticket.status === "OPEN" ? "default" : "outline"} 
+              size="sm" 
+              onClick={handleStatusToggle}
+              disabled={statusLoading}
+              className={ticket.status === "OPEN" ? "bg-green-600 hover:bg-green-700 text-white" : ""}
+            >
+              {ticket.status === "OPEN" ? (
+                <><CheckCircle2 className="h-4 w-4 mr-2" /> Mark as Resolved</>
+              ) : (
+                <><AlertCircle className="h-4 w-4 mr-2" /> Reopen Ticket</>
+              )}
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* --- Layout Grid --- */}
@@ -139,9 +215,18 @@ const TicketDetails = ({ isAdmin = false }) => {
                   )}
                 </div>
 
-                <h1 className="text-3xl font-bold text-slate-900 leading-snug">
-                  {ticket.title}
-                </h1>
+                {/* EDITABLE TITLE */}
+                {isEditing ? (
+                  <Input
+                    value={editForm.title}
+                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                    className="text-lg font-bold text-slate-900"
+                  />
+                ) : (
+                  <h1 className="text-3xl font-bold text-slate-900 leading-snug">
+                    {ticket.title}
+                  </h1>
+                )}
 
                 {ticket.createdAt && (
                   <div className="text-xs text-slate-400">
@@ -150,11 +235,29 @@ const TicketDetails = ({ isAdmin = false }) => {
                 )}
               </div>
 
-              {/* Description */}
+              {/* EDITABLE DESCRIPTION */}
               <div className="pt-6 border-t">
-                <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
-                  {ticket.description}
-                </p>
+                {isEditing ? (
+                  <div className="space-y-3">
+                    <Textarea
+                      value={editForm.description}
+                      onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                      className="min-h-37.5 text-sm text-slate-700"
+                    />
+                    <div className="flex justify-end gap-2 mt-4">
+                      <Button variant="outline" onClick={() => setIsEditing(false)} disabled={updateLoading}>
+                        <X className="h-4 w-4 mr-2" /> Cancel
+                      </Button>
+                      <Button onClick={handleUpdateTicket} disabled={updateLoading}>
+                        <Save className="h-4 w-4 mr-2" /> {updateLoading ? "Saving..." : "Save Changes"}
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap">
+                    {ticket.description}
+                  </p>
+                )}
               </div>
 
             </CardContent>

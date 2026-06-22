@@ -18,6 +18,8 @@ WORKDIR /app
 # Copy the compiled .jar file from the "build" stage
 COPY --from=build /app/target/*-SNAPSHOT.jar app.jar
 
+COPY ca.pem /app/ca.pem
+
 # Expose port 8080 to match your application.yml and docker-compose
 EXPOSE 8080
 

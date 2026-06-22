@@ -26,6 +26,11 @@ public class NotificationRestController {
         service.markAsRead(id);
     }
 
+    @PutMapping("/read-all")
+    public void markAllAsRead(@RequestHeader("X-Username") String username) {
+        service.markAllAsRead(username);
+    }
+
     @DeleteMapping("/all")
     public void deleteAllNotifications(@RequestHeader("X-Username") String username) {
         service.deleteAllNotifications(username);
