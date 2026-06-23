@@ -23,7 +23,7 @@ public class EmailService {
             mailMessage.setText(body);
             mailSender.send(mailMessage);
         } catch (MailException e) {
-            log.error("Error while sending email : ", e.getMessage());
+            log.error("Error while sending email : ", e);
         }
     }
 }
